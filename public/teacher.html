@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body id="teacher-page">
+  <div class="page">
+    <div class="box" id="teacher-start">
+      <h1>Teacher</h1>
+      <button id="create-room-btn">Create Room</button>
+      <p id="teacher-error" class="error"></p>
+      <p><a href="/">Back</a></p>
+    </div>
+
+    <div class="box hidden" id="teacher-app">
+      <h1>Teacher Room</h1>
+      <p><strong>Room Code:</strong> <span id="room-code">----</span></p>
+      <p><strong>Status:</strong> <span id="teacher-status">Waiting</span></p>
+      <p id="teacher-question"></p>
+    </div>
+
+    <div class="box hidden" id="teacher-players-box">
+      <h2>Players</h2>
+      <ul id="teacher-players"></ul>
+    </div>
+
+    <div class="box hidden" id="teacher-prompts-box">
+      <h2>Prompt Manager</h2>
+      <input id="prompt-question" type="text" placeholder="Question">
+      <input id="prompt-answer" type="text" placeholder="Correct answer">
+      <button id="save-prompt-btn">Save Prompt</button>
+      <button id="clear-prompt-btn">Clear</button>
+      <div class="small-gap"></div>
+      <button id="export-prompts-btn">Export JSON</button>
+      <label class="plain-label">
+        Import JSON
+        <input id="import-prompts-input" type="file" accept=".json">
+      </label>
+      <div class="small-gap"></div>
+      <div id="prompt-list"></div>
+    </div>
+
+    <div class="box hidden" id="teacher-results-box">
+      <h2>Round Results</h2>
+      <div id="teacher-results"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

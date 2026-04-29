@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body id="student-page">
+  <div class="page">
+    <div class="box" id="join-box">
+      <h1>Student</h1>
+      <input id="join-name" type="text" placeholder="Your name">
+      <input id="join-room" type="text" placeholder="Room code">
+      <button id="join-btn">Join Room</button>
+      <p id="join-error" class="error"></p>
+      <p><a href="/">Back</a></p>
+    </div>
+
+    <div class="box hidden" id="student-app">
+      <h1>Student</h1>
+      <p><strong>Name:</strong> <span id="student-name"></span></p>
+      <p><strong>Room:</strong> <span id="student-room"></span></p>
+      <p><strong>Score:</strong> <span id="student-score">0</span></p>
+      <h2 id="student-title">Waiting</h2>
+      <p id="student-question"></p>
+      <p id="student-message"></p>
+
+      <div id="submit-box" class="hidden">
+        <input id="fake-answer-input" type="text" placeholder="Your fake answer">
+        <button id="submit-fake-btn">Submit Fake Answer</button>
+      </div>
+
+      <div id="vote-box" class="hidden">
+        <div id="vote-options"></div>
+      </div>
+
+      <div id="results-box" class="hidden">
+        <div id="student-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="client.js"></script>
+</body>
+</html>

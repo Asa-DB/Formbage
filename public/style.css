@@ -1,0 +1,104 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  color: #000;
+}
+
+.page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.box {
+  background: #fff;
+  border: 2px solid #000;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+input,
+button,
+.button-link {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 10px 0;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #000;
+  background: #fff;
+  color: #000;
+}
+
+button,
+.button-link {
+  cursor: pointer;
+}
+
+.button-link {
+  text-decoration: none;
+  text-align: center;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  border: 1px solid #000;
+  padding: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.prompt-item,
+.result-item {
+  border: 1px solid #000;
+  padding: 10px;
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.stack {
+  max-width: 300px;
+  margin: 20px auto 0;
+}
+
+.error {
+  min-height: 20px;
+}
+
+.plain-label {
+  display: block;
+  border: 2px solid #000;
+  padding: 10px;
+  margin: 10px 0;
+  background: #fff;
+}
+
+.plain-label input {
+  margin-top: 10px;
+}
+
+.small-gap {
+  height: 10px;
+}
+
+#vote-options button {
+  text-align: left;
+}
