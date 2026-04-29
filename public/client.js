@@ -1,5 +1,47 @@
 const socket = io();
 
+const phaseNames = {
+  LOBBY: "Lobby",
+  PICK_WRITERS: "Picking Writers",
+  SUBMITTING: "Submission Phase",
+  REVEALING: "Revealing Answers",
+  VOTING: "Voting Phase",
+  RESULTS: "Results",
+};
+
+function formatPhase(phase) {
+  return phaseNames[phase] || phase || "";
+}
+
+function makeCountdownUpdater(element) {
+  let timerId = null;
+
+  return function updateCountdown(endsAt) {
+    clearInterval(timerId);
+    timerId = null;
+
+    if (!element || !endsAt) {
+      if (element) {
+        element.textContent = "-";
+      }
+      return;
+    }
+
+    function render() {
+      const seconds = Math.max(0, Math.ceil((endsAt - Date.now()) / 1000));
+      element.textContent = String(seconds);
+
+      if (seconds <= 0) {
+        clearInterval(timerId);
+        timerId = null;
+      }
+    }
+
+    render();
+    timerId = setInterval(render, 250);
+  };
+}
+
 if (document.body.id === "teacher-page") {
   let roomCode = "";
   let prompts = loadPrompts();
@@ -14,6 +56,7 @@ if (document.body.id === "teacher-page") {
   const teacherError = document.getElementById("teacher-error");
   const roomCodeText = document.getElementById("room-code");
   const teacherStatus = document.getElementById("teacher-status");
+  const teacherTimer = document.getElementById("teacher-timer");
   const teacherQuestion = document.getElementById("teacher-question");
   const teacherPlayers = document.getElementById("teacher-players");
   const promptQuestion = document.getElementById("prompt-question");
@@ -24,6 +67,7 @@ if (document.body.id === "teacher-page") {
   const importPromptsInput = document.getElementById("import-prompts-input");
   const promptList = document.getElementById("prompt-list");
   const teacherResults = document.getElementById("teacher-results");
+  const updateTeacherTimer = makeCountdownUpdater(teacherTimer);
 
   createRoomBtn.addEventListener("click", () => {
     teacherError.textContent = "";
@@ -115,8 +159,14 @@ if (document.body.id === "teacher-page") {
   socket.on("teacherState", (state) => {
     roomCode = state.roomCode;
     roomCodeText.textContent = state.roomCode;
-    teacherStatus.textContent = state.phase;
-    teacherQuestion.textContent = state.question ? "Question: " + state.question : "";
+    teacherStatus.textContent = formatPhase(state.phase);
+    updateTeacherTimer(state.phaseEndsAt);
+
+    let questionLine = state.question ? "Question: " + state.question : "";
+    if (state.writers && state.writers.length && (state.phase === "PICK_WRITERS" || state.phase === "SUBMITTING")) {
+      questionLine += (questionLine ? " " : "") + "Writers: " + state.writers.join(", ");
+    }
+    teacherQuestion.textContent = questionLine;
 
     teacherPlayers.innerHTML = "";
     state.students.forEach((student) => {
@@ -230,6 +280,7 @@ if (document.body.id === "student-page") {
   const studentName = document.getElementById("student-name");
   const studentRoom = document.getElementById("student-room");
   const studentScore = document.getElementById("student-score");
+  const studentTimer = document.getElementById("student-timer");
   const studentTitle = document.getElementById("student-title");
   const studentQuestion = document.getElementById("student-question");
   const studentMessage = document.getElementById("student-message");
@@ -240,6 +291,7 @@ if (document.body.id === "student-page") {
   const submitFakeBtn = document.getElementById("submit-fake-btn");
   const voteOptions = document.getElementById("vote-options");
   const studentResults = document.getElementById("student-results");
+  const updateStudentTimer = makeCountdownUpdater(studentTimer);
 
   joinBtn.addEventListener("click", () => {
     joinError.textContent = "";
@@ -254,6 +306,7 @@ if (document.body.id === "student-page") {
     if (!answer) {
       return;
     }
+    submitFakeBtn.disabled = true;
     socket.emit("submitFakeAnswer", { answer });
   });
 
@@ -273,46 +326,63 @@ if (document.body.id === "student-page") {
     studentRoom.textContent = state.roomCode;
     studentScore.textContent = state.score;
     studentQuestion.textContent = state.question;
+    updateStudentTimer(state.phaseEndsAt);
 
     submitBox.classList.add("hidden");
     voteBox.classList.add("hidden");
     resultsBox.classList.add("hidden");
     studentMessage.textContent = "";
+    submitFakeBtn.disabled = false;
 
-    if (state.phase === "lobby") {
-      studentTitle.textContent = "Waiting";
+    if (state.phase === "LOBBY") {
+      studentTitle.textContent = formatPhase(state.phase);
       studentMessage.textContent = state.waitingMessage;
     }
 
-    if (state.phase === "submit") {
-      if (state.waitingMessage) {
-        studentTitle.textContent = "Waiting";
+    if (state.phase === "PICK_WRITERS") {
+      studentTitle.textContent = formatPhase(state.phase);
+      studentMessage.textContent = state.waitingMessage;
+    }
+
+    if (state.phase === "SUBMITTING") {
+      studentTitle.textContent = formatPhase(state.phase);
+
+      if (!state.isWriter) {
         studentMessage.textContent = state.waitingMessage;
       } else if (state.submitted) {
-        studentTitle.textContent = "Submitted";
-        studentMessage.textContent = "Your fake answer is in. Waiting for others.";
+        studentMessage.textContent = "Your fake answer is locked in. Waiting for the reveal.";
       } else {
-        studentTitle.textContent = "Write a Fake Answer";
+        studentMessage.textContent = "Submit one believable fake answer before time runs out.";
         submitBox.classList.remove("hidden");
       }
     }
 
-    if (state.phase === "vote") {
-      if (state.waitingMessage) {
-        studentTitle.textContent = "Waiting";
+    if (state.phase === "REVEALING") {
+      studentTitle.textContent = formatPhase(state.phase);
+      studentMessage.textContent = state.waitingMessage;
+
+      if (state.options.length) {
+        voteBox.classList.remove("hidden");
+        renderRevealOptions(state.options);
+      }
+    }
+
+    if (state.phase === "VOTING") {
+      studentTitle.textContent = formatPhase(state.phase);
+
+      if (!state.options.length) {
         studentMessage.textContent = state.waitingMessage;
       } else if (state.voted) {
-        studentTitle.textContent = "Vote Sent";
-        studentMessage.textContent = "Waiting for everyone to vote.";
+        studentMessage.textContent = "Vote sent. Waiting for everyone else.";
       } else {
-        studentTitle.textContent = "Pick the Real Answer";
+        studentMessage.textContent = "Pick the real answer.";
         voteBox.classList.remove("hidden");
         renderVoteOptions(state.options);
       }
     }
 
-    if (state.phase === "results") {
-      studentTitle.textContent = "Results";
+    if (state.phase === "RESULTS") {
+      studentTitle.textContent = formatPhase(state.phase);
       resultsBox.classList.remove("hidden");
       renderResults(studentResults, state.results);
     }
@@ -332,9 +402,23 @@ if (document.body.id === "student-page") {
       button.textContent = option.text;
       button.disabled = option.disabled;
       button.addEventListener("click", () => {
+        Array.from(voteOptions.querySelectorAll("button")).forEach((item) => {
+          item.disabled = true;
+        });
         socket.emit("voteAnswer", { optionId: option.id });
       });
       voteOptions.appendChild(button);
+    });
+  }
+
+  function renderRevealOptions(options) {
+    voteOptions.innerHTML = "";
+
+    options.forEach((option) => {
+      const item = document.createElement("div");
+      item.className = "option-item";
+      item.textContent = option.text;
+      voteOptions.appendChild(item);
     });
   }
 }
@@ -356,6 +440,12 @@ function renderResults(target, results) {
     ? "Picked correctly: " + results.correctPickers.join(", ")
     : "Picked correctly: nobody";
   target.appendChild(correctPickers);
+
+  const topBluffers = document.createElement("p");
+  topBluffers.textContent = results.mostFooledCount
+    ? "Fooled the most: " + results.mostFooledNames.join(", ") + " (" + results.mostFooledCount + ")"
+    : "Fooled the most: nobody";
+  target.appendChild(topBluffers);
 
   results.answers.forEach((item) => {
     const box = document.createElement("div");

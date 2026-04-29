@@ -83,6 +83,11 @@ li {
   min-height: 20px;
 }
 
+.timer-line {
+  font-size: 28px;
+  font-weight: bold;
+}
+
 .plain-label {
   display: block;
   border: 2px solid #000;
@@ -99,6 +104,13 @@ li {
   height: 10px;
 }
 
-#vote-options button {
+#vote-options button,
+.option-item {
   text-align: left;
+}
+
+.option-item {
+  border: 2px solid #000;
+  padding: 10px;
+  margin: 10px 0;
 }
